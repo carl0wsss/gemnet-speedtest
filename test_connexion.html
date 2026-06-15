@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speed Test</title>
+</head>
+<body>
+    <button onclick="mesurerDownload()">Mesurer Download</button>
+    <button onclick="mesurerUpload()">Mesurer Upload</button>
+    <button onclick="mesurerLatence()">Mesurer Latence</button>
+    <pre id="resultats"></pre>
+
+<script>
+const BASE       = "https://speedtest-3grk.onrender.com/backend";
+const NB_MESURES = 8;
+
+const log = (msg) => {
+    document.getElementById("resultats").textContent += msg + "\n";
+};
+
+function ecartType(valeurs) {
+    const avg = valeurs.reduce((a,b) => a+b, 0) / valeurs.length;
+    const variance = valeurs.reduce((a,b) => a + Math.pow(b-avg, 2), 0) / valeurs.length;
+    return Math.sqrt(variance).toFixed(1);
+}
+
+// ============================================================
+// DOWNLOAD — 1 connexion — fichier de 25MB
+// ============================================================
+async function mesurerDownload() {
+    document.getElementById("resultats").textContent = "";
+    log("===== DOWNLOAD =====");
+    log("Serveur : LibreSpeed (speedtest-3grk.onrender.com)\n");
+
+    const valeurs = [];
+    for (let i = 0; i < NB_MESURES; i++) {
+        try {
+            const debut = performance.now();
+            const r     = await fetch(`${BASE}/garbage.php?ckSize=25&r=${Math.random()}`);
+            if (!r.ok) { log(`  Mesure ${String(i+1).padStart(2,"0")} : Erreur ${r.status}`); continue; }
+            const data  = await r.arrayBuffer();
+            const duree = (performance.now() - debut) / 1000;
+            const v     = (data.byteLength * 8) / duree / 1_000_000;
+            valeurs.push(v);
+            log(`  Mesure ${String(i+1).padStart(2,"0")} : ${v.toFixed(1)} Mbps`);
+        } catch(e) {
+            log(`  Mesure ${String(i+1).padStart(2,"0")} : Erreur - ${e.message}`);
+        }
+    }
+
+    if (valeurs.length > 0) {
+        log(`\n  → Peak      : ${Math.max(...valeurs).toFixed(1)} Mbps`);
+        log(`  → Average   : ${(valeurs.reduce((a,b)=>a+b,0)/valeurs.length).toFixed(1)} Mbps`);
+        log(`  → Écart-type: ${ecartType(valeurs)} Mbps`);
+    }
+    log("\n===== TERMINÉ =====");
+}
+
+// ============================================================
+// UPLOAD — 16 connexions parallèles — 25MB chacune
+// ============================================================
+async function mesurerUpload() {
+    document.getElementById("resultats").textContent = "";
+    log("===== UPLOAD =====");
+    log("Serveur : LibreSpeed (speedtest-3grk.onrender.com)\n");
+
+    const valeurs = [];
+    for (let i = 0; i < NB_MESURES; i++) {
+        try {
+            const data  = new ArrayBuffer(25 * 1024 * 1024);
+            const debut = performance.now();
+            await Promise.all(
+                Array.from({length: 16}, () =>
+                    fetch(`${BASE}/empty.php`, { method: "POST", body: data })
+                )
+            );
+            const duree = (performance.now() - debut) / 1000;
+            const v     = (25 * 1024 * 1024 * 16 * 8) / duree / 1_000_000;
+            valeurs.push(v);
+            log(`  Mesure ${String(i+1).padStart(2,"0")} : ${v.toFixed(1)} Mbps`);
+        } catch(e) {
+            log(`  Mesure ${String(i+1).padStart(2,"0")} : Erreur - ${e.message}`);
+        }
+    }
+
+    if (valeurs.length > 0) {
+        log(`\n  → Peak      : ${Math.max(...valeurs).toFixed(1)} Mbps`);
+        log(`  → Average   : ${(valeurs.reduce((a,b)=>a+b,0)/valeurs.length).toFixed(1)} Mbps`);
+        log(`  → Écart-type: ${ecartType(valeurs)} Mbps`);
+    }
+    log("\n===== TERMINÉ =====");
+}
+
+// ============================================================
+// LATENCE — ping vers le serveur LibreSpeed
+// ============================================================
+async function mesurerLatence() {
+    document.getElementById("resultats").textContent = "";
+    log("===== LATENCE =====");
+    log("Serveur : LibreSpeed (speedtest-3grk.onrender.com)\n");
+
+    const valeurs = [];
+    for (let i = 0; i < NB_MESURES; i++) {
+        try {
+            const debut = performance.now();
+            await fetch(`${BASE}/empty.php?r=${Math.random()}`);
+            const v = performance.now() - debut;
+            valeurs.push(v);
+            log(`  Ping ${String(i+1).padStart(2,"0")} : ${v.toFixed(1)} ms`);
+        } catch(e) {
+            log(`  Ping ${String(i+1).padStart(2,"0")} : Erreur - ${e.message}`);
+        }
+    }
+
+    if (valeurs.length > 0) {
+        log(`\n  → Maximum    : ${Math.max(...valeurs).toFixed(1)} ms`);
+        log(`  → Average    : ${(valeurs.reduce((a,b)=>a+b,0)/valeurs.length).toFixed(1)} ms`);
+        log(`  → Écart-type : ${ecartType(valeurs)} ms`);
+    }
+    log("\n===== TERMINÉ =====");
+}
+</script>
+</body>
+</html>

@@ -6,40 +6,28 @@
 <body>
     <button onclick="lancer()">Lancer le test</button>
     <button onclick="arreter()">Arrêter</button>
-    <pre id="resultats"></pre>
+    <pre id="resultats">Prêt</pre>
 
-    <!-- On inclut le moteur de mesure LibreSpeed -->
     <script src="/speedtest.js"></script>
 
     <script>
-    // Création de l'instance LibreSpeed
     const s = new Speedtest();
 
-    const log = (msg) => {
-        document.getElementById("resultats").textContent += msg + "\n";
-    };
-
-    // Mise à jour en temps réel pendant le test
     s.onupdate = (data) => {
         document.getElementById("resultats").textContent =
-            `Download : ${data.dlStatus} Mbps\n` +
-            `Upload   : ${data.ulStatus} Mbps\n` +
-            `Ping     : ${data.pingStatus} ms\n` +
-            `Jitter   : ${data.jitterStatus} ms\n` +
-            `Statut   : ${data.testState}`;
+            "Download : " + data.dlStatus + " Mbps\n" +
+            "Upload   : " + data.ulStatus + " Mbps\n" +
+            "Ping     : " + data.pingStatus + " ms\n" +
+            "Jitter   : " + data.jitterStatus + " ms";
     };
 
-    // Quand le test est terminé
     s.onend = (aborted) => {
-        if (aborted) {
-            log("\nTest arrêté !");
-        } else {
-            log("\n===== TEST TERMINÉ =====");
-        }
+        document.getElementById("resultats").textContent +=
+            "\n\n===== TEST TERMINÉ =====";
     };
 
     function lancer() {
-        document.getElementById("resultats").textContent = "";
+        document.getElementById("resultats").textContent = "Test en cours...";
         s.start();
     }
 

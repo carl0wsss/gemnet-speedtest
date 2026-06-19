@@ -31,7 +31,6 @@
     overflow:hidden;
   }
 
-  /* HEADER */
   .hero{
     background:var(--bleu-nuit);
     padding:28px 24px 36px;
@@ -84,7 +83,6 @@
     min-height:16px;
   }
 
-  /* CONTENU */
   .contenu{padding:20px;}
   .carte-mesure{
     background:var(--fond-carte);
@@ -233,17 +231,16 @@
 
 <script src="/speedtest.js"></script>
 <script>
-const s = new Speedtest();
 const SERVEURS = [
   { id:"eu",   name:"Frankfurt (Europe)", server:"https://gemnet-speedtest.onrender.com/",         dlURL:"backend/garbage.php", ulURL:"backend/empty.php", pingURL:"backend/empty.php", getIpURL:"backend/getIP.php" },
   { id:"asia", name:"Singapore (Asie)",    server:"https://gemnet-speedtest-asia.onrender.com/",    dlURL:"backend/garbage.php", ulURL:"backend/empty.php", pingURL:"backend/empty.php", getIpURL:"backend/getIP.php" },
   { id:"usa",  name:"USA",                 server:"https://gemnet-speedtest-america.onrender.com/", dlURL:"backend/garbage.php", ulURL:"backend/empty.php", pingURL:"backend/empty.php", getIpURL:"backend/getIP.php" }
 ];
-s.addTestPoints(SERVEURS);
 
 const CIRCONFERENCE = 226.19;
 const MAX_JAUGE = 1000;
 
+let s = null;
 let dlHistory = [];
 let ulHistory = [];
 
@@ -283,50 +280,7 @@ function statsNonNulles(history){
   return { peak: peak.toFixed(0), avg: avg.toFixed(0) };
 }
 
-s.onupdate = (data) => {
-  const dl = parseFloat(data.dlStatus) || 0;
-  const ul = parseFloat(data.ulStatus) || 0;
-  const ping = parseFloat(data.pingStatus) || 0;
-  const jitter = parseFloat(data.jitterStatus) || 0;
-
-  if(data.testState === 1){
-    dlHistory.push(dl);
-    document.getElementById("jauge-val-dl").textContent = dl.toFixed(0);
-    majJauge("anneau-dl", dl);
-    dessiner(dlHistory, "ligne-dl", "aire-dl");
-    const st = statsNonNulles(dlHistory);
-    document.getElementById("peak-dl").textContent = "Peak " + st.peak;
-    document.getElementById("avg-dl").textContent = "Avg " + st.avg;
-  }
-
-  if(data.testState === 3){
-    ulHistory.push(ul);
-    document.getElementById("jauge-val-ul").textContent = ul.toFixed(0);
-    majJauge("anneau-ul", ul);
-    dessiner(ulHistory, "ligne-ul", "aire-ul");
-    const st = statsNonNulles(ulHistory);
-    document.getElementById("peak-ul").textContent = "Peak " + st.peak;
-    document.getElementById("avg-ul").textContent = "Avg " + st.avg;
-  }
-
-  document.getElementById("val-ping").innerHTML = ping.toFixed(0) + '<span class="unite-stat"> ms</span>';
-  document.getElementById("val-jitter").innerHTML = jitter.toFixed(1) + '<span class="unite-stat"> ms</span>';
-
-  const LABELS = { 0:"Initialisation…", 1:"Mesure du download…", 2:"Mesure du ping…", 3:"Mesure de l'upload…", 4:"Terminé", 5:"Arrêté" };
-  document.getElementById("statut").textContent = LABELS[data.testState] ?? "";
-};
-
-s.onend = (aborted) => {
-  document.getElementById("statut").textContent = aborted ? "Test arrêté" : "Test terminé";
-  document.getElementById("btn-start").disabled = false;
-  document.getElementById("btn-start").textContent = "RELANCER LE TEST";
-};
-
-function lancer(){
-  document.getElementById("btn-start").disabled = true;
-  document.getElementById("statut").textContent = "Sélection du serveur le plus proche…";
-  document.querySelectorAll(".noeud").forEach(n => n.classList.remove("actif"));
-  document.getElementById("info-serveur").textContent = "";
+function reinitialiserAffichage(){
   dlHistory = [];
   ulHistory = [];
   dessiner(dlHistory, "ligne-dl", "aire-dl");
@@ -339,6 +293,58 @@ function lancer(){
   document.getElementById("avg-dl").textContent = "Avg 0";
   document.getElementById("peak-ul").textContent = "Peak 0";
   document.getElementById("avg-ul").textContent = "Avg 0";
+  document.getElementById("val-ping").innerHTML = '0<span class="unite-stat"> ms</span>';
+  document.getElementById("val-jitter").innerHTML = '0<span class="unite-stat"> ms</span>';
+  document.querySelectorAll(".noeud").forEach(n => n.classList.remove("actif"));
+  document.getElementById("info-serveur").textContent = "";
+}
+
+function lancer(){
+  document.getElementById("btn-start").disabled = true;
+  document.getElementById("statut").textContent = "Sélection du serveur le plus proche…";
+  reinitialiserAffichage();
+
+  s = new Speedtest();
+  s.addTestPoints(SERVEURS);
+
+  s.onupdate = (data) => {
+    const dl = parseFloat(data.dlStatus) || 0;
+    const ul = parseFloat(data.ulStatus) || 0;
+    const ping = parseFloat(data.pingStatus) || 0;
+    const jitter = parseFloat(data.jitterStatus) || 0;
+
+    if(data.testState === 1){
+      dlHistory.push(dl);
+      document.getElementById("jauge-val-dl").textContent = dl.toFixed(0);
+      majJauge("anneau-dl", dl);
+      dessiner(dlHistory, "ligne-dl", "aire-dl");
+      const st = statsNonNulles(dlHistory);
+      document.getElementById("peak-dl").textContent = "Peak " + st.peak;
+      document.getElementById("avg-dl").textContent = "Avg " + st.avg;
+    }
+
+    if(data.testState === 3){
+      ulHistory.push(ul);
+      document.getElementById("jauge-val-ul").textContent = ul.toFixed(0);
+      majJauge("anneau-ul", ul);
+      dessiner(ulHistory, "ligne-ul", "aire-ul");
+      const st = statsNonNulles(ulHistory);
+      document.getElementById("peak-ul").textContent = "Peak " + st.peak;
+      document.getElementById("avg-ul").textContent = "Avg " + st.avg;
+    }
+
+    document.getElementById("val-ping").innerHTML = ping.toFixed(0) + '<span class="unite-stat"> ms</span>';
+    document.getElementById("val-jitter").innerHTML = jitter.toFixed(1) + '<span class="unite-stat"> ms</span>';
+
+    const LABELS = { 0:"Initialisation…", 1:"Mesure du download…", 2:"Mesure du ping…", 3:"Mesure de l'upload…", 4:"Terminé", 5:"Arrêté" };
+    document.getElementById("statut").textContent = LABELS[data.testState] ?? "";
+  };
+
+  s.onend = (aborted) => {
+    document.getElementById("statut").textContent = aborted ? "Test arrêté" : "Test terminé";
+    document.getElementById("btn-start").disabled = false;
+    document.getElementById("btn-start").textContent = "RELANCER LE TEST";
+  };
 
   s.selectServer((best) => {
     if(!best){

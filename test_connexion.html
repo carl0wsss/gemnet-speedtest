@@ -37,7 +37,6 @@
     padding:28px 24px 36px;
     text-align:center;
   }
-  .logo-wrap{margin-bottom:4px;}
   .sous-titre{
     color:#FFFFFF;
     font-size:13px;
@@ -45,7 +44,6 @@
     margin:4px 0 0;
     opacity:0.75;
   }
-
   .serveurs{
     display:flex;
     justify-content:center;
@@ -87,54 +85,57 @@
   }
 
   /* CONTENU */
-  .contenu{padding:24px;}
+  .contenu{padding:20px;}
   .carte-mesure{
     background:var(--fond-carte);
     border-radius:12px;
-    padding:16px;
+    padding:14px;
     margin-bottom:14px;
-  }
-  .ligne-titre{
     display:flex;
-    justify-content:space-between;
-    align-items:baseline;
-    margin-bottom:8px;
+    align-items:center;
+    gap:14px;
   }
+
+  .jauge-wrap{
+    position:relative;
+    width:88px;height:88px;
+    flex-shrink:0;
+  }
+  .jauge-centre{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+  }
+  .jauge-valeur{font-size:17px;font-weight:700;color:var(--bleu-nuit);}
+  .jauge-unite{font-size:9px;color:var(--gris);}
+
+  .col-courbe{flex:1;min-width:0;}
   .label-mesure{
     font-size:11px;
     letter-spacing:1px;
     color:var(--gris);
-    margin:0;
+    margin:0 0 6px;
   }
-  .valeur-mesure{
-    font-size:22px;
-    font-weight:700;
-    margin:0;
-  }
-  .unite{font-size:11px;color:var(--gris);font-weight:400;}
   .ligne-stats{
     display:flex;
     justify-content:space-between;
-    margin-top:6px;
-    font-size:11px;
+    margin-top:4px;
+    font-size:10px;
     color:var(--gris);
   }
 
-  .carte-double{
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-  }
+  .carte-double{justify-content:space-around;}
   .stat{text-align:center;}
   .stat-valeur{font-size:20px;font-weight:700;margin:0;}
   .stat-label{font-size:10px;letter-spacing:1px;color:var(--gris);margin:2px 0 0;}
+  .unite-stat{font-size:11px;color:var(--gris);font-weight:400;}
   .separateur-v{width:1px;height:28px;background:var(--ligne);}
 
   .info-serveur{
     text-align:center;
     font-size:11px;
     color:var(--gris);
-    margin:12px 0 0;
+    margin:4px 0 0;
   }
 </style>
 </head>
@@ -143,12 +144,10 @@
 <div class="carte-app">
 
   <div class="hero">
-    <div class="logo-wrap">
-      <svg width="120" height="58" viewBox="0 0 1024 512" aria-label="GemNet">
-        <ellipse cx="512" cy="256" rx="380" ry="120" transform="rotate(-25 512 256)" fill="none" stroke="#2230E0" stroke-width="34"/>
-        <text x="512" y="290" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="150" fill="#D2151A">GEMNET</text>
-      </svg>
-    </div>
+    <svg width="120" height="58" viewBox="0 0 1024 512" aria-label="GemNet">
+      <ellipse cx="512" cy="256" rx="380" ry="120" transform="rotate(-25 512 256)" fill="none" stroke="#2230E0" stroke-width="34"/>
+      <text x="512" y="290" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="150" fill="#D2151A">GEMNET</text>
+    </svg>
     <p class="sous-titre">SPEED TEST</p>
 
     <div class="serveurs">
@@ -164,43 +163,65 @@
   <div class="contenu">
 
     <div class="carte-mesure">
-      <div class="ligne-titre">
-        <p class="label-mesure">DOWNLOAD</p>
-        <p class="valeur-mesure" id="val-dl">0<span class="unite"> Mbps</span></p>
+      <div class="jauge-wrap">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="36" fill="none" stroke="#E1E5F0" stroke-width="8"/>
+          <circle id="anneau-dl" cx="44" cy="44" r="36" fill="none" stroke="#2230E0" stroke-width="8"
+                  stroke-linecap="round" stroke-dasharray="226.19" stroke-dashoffset="226.19"
+                  transform="rotate(-90 44 44)" style="transition:stroke-dashoffset .3s ease;"/>
+        </svg>
+        <div class="jauge-centre">
+          <span class="jauge-valeur" id="jauge-val-dl">0</span>
+          <span class="jauge-unite">Mbps</span>
+        </div>
       </div>
-      <svg width="100%" height="48" viewBox="0 0 400 48" preserveAspectRatio="none">
-        <path id="aire-dl" fill="#2230E0" opacity="0.15" d=""></path>
-        <path id="ligne-dl" fill="none" stroke="#2230E0" stroke-width="2.5" d=""></path>
-      </svg>
-      <div class="ligne-stats">
-        <span id="peak-dl">Peak 0</span>
-        <span id="avg-dl">Avg 0</span>
+      <div class="col-courbe">
+        <p class="label-mesure">DOWNLOAD</p>
+        <svg width="100%" height="40" viewBox="0 0 240 40" preserveAspectRatio="none">
+          <path id="aire-dl" fill="#2230E0" opacity="0.15" d=""></path>
+          <path id="ligne-dl" fill="none" stroke="#2230E0" stroke-width="2.5" d=""></path>
+        </svg>
+        <div class="ligne-stats">
+          <span id="peak-dl">Peak 0</span>
+          <span id="avg-dl">Avg 0</span>
+        </div>
       </div>
     </div>
 
     <div class="carte-mesure">
-      <div class="ligne-titre">
-        <p class="label-mesure">UPLOAD</p>
-        <p class="valeur-mesure" id="val-ul">0<span class="unite"> Mbps</span></p>
+      <div class="jauge-wrap">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="36" fill="none" stroke="#E1E5F0" stroke-width="8"/>
+          <circle id="anneau-ul" cx="44" cy="44" r="36" fill="none" stroke="#D2151A" stroke-width="8"
+                  stroke-linecap="round" stroke-dasharray="226.19" stroke-dashoffset="226.19"
+                  transform="rotate(-90 44 44)" style="transition:stroke-dashoffset .3s ease;"/>
+        </svg>
+        <div class="jauge-centre">
+          <span class="jauge-valeur" id="jauge-val-ul">0</span>
+          <span class="jauge-unite">Mbps</span>
+        </div>
       </div>
-      <svg width="100%" height="48" viewBox="0 0 400 48" preserveAspectRatio="none">
-        <path id="aire-ul" fill="#D2151A" opacity="0.15" d=""></path>
-        <path id="ligne-ul" fill="none" stroke="#D2151A" stroke-width="2.5" d=""></path>
-      </svg>
-      <div class="ligne-stats">
-        <span id="peak-ul">Peak 0</span>
-        <span id="avg-ul">Avg 0</span>
+      <div class="col-courbe">
+        <p class="label-mesure">UPLOAD</p>
+        <svg width="100%" height="40" viewBox="0 0 240 40" preserveAspectRatio="none">
+          <path id="aire-ul" fill="#D2151A" opacity="0.15" d=""></path>
+          <path id="ligne-ul" fill="none" stroke="#D2151A" stroke-width="2.5" d=""></path>
+        </svg>
+        <div class="ligne-stats">
+          <span id="peak-ul">Peak 0</span>
+          <span id="avg-ul">Avg 0</span>
+        </div>
       </div>
     </div>
 
     <div class="carte-mesure carte-double">
       <div class="stat">
-        <p class="stat-valeur" id="val-ping">0<span class="unite"> ms</span></p>
+        <p class="stat-valeur" id="val-ping">0<span class="unite-stat"> ms</span></p>
         <p class="stat-label">PING</p>
       </div>
       <div class="separateur-v"></div>
       <div class="stat">
-        <p class="stat-valeur" id="val-jitter">0<span class="unite"> ms</span></p>
+        <p class="stat-valeur" id="val-jitter">0<span class="unite-stat"> ms</span></p>
         <p class="stat-label">JITTER</p>
       </div>
     </div>
@@ -220,8 +241,17 @@ const SERVEURS = [
 ];
 s.addTestPoints(SERVEURS);
 
+const CIRCONFERENCE = 226.19;
+const MAX_JAUGE = 1000;
+
 let dlHistory = [];
 let ulHistory = [];
+
+function majJauge(idAnneau, valeur){
+  const pct = Math.min(valeur / MAX_JAUGE, 1);
+  const offset = CIRCONFERENCE * (1 - pct);
+  document.getElementById(idAnneau).setAttribute("stroke-dashoffset", offset.toFixed(1));
+}
 
 function construireChemins(history, w, h, padHaut, padBas){
   if(history.length < 2){
@@ -240,7 +270,7 @@ function construireChemins(history, w, h, padHaut, padBas){
 }
 
 function dessiner(history, idLigne, idAire){
-  const { ligne, aire } = construireChemins(history, 400, 48, 4, 4);
+  const { ligne, aire } = construireChemins(history, 240, 40, 3, 3);
   document.getElementById(idLigne).setAttribute("d", ligne);
   document.getElementById(idAire).setAttribute("d", aire);
 }
@@ -261,7 +291,8 @@ s.onupdate = (data) => {
 
   if(data.testState === 1){
     dlHistory.push(dl);
-    document.getElementById("val-dl").innerHTML = dl.toFixed(0) + '<span class="unite"> Mbps</span>';
+    document.getElementById("jauge-val-dl").textContent = dl.toFixed(0);
+    majJauge("anneau-dl", dl);
     dessiner(dlHistory, "ligne-dl", "aire-dl");
     const st = statsNonNulles(dlHistory);
     document.getElementById("peak-dl").textContent = "Peak " + st.peak;
@@ -270,15 +301,16 @@ s.onupdate = (data) => {
 
   if(data.testState === 3){
     ulHistory.push(ul);
-    document.getElementById("val-ul").innerHTML = ul.toFixed(0) + '<span class="unite"> Mbps</span>';
+    document.getElementById("jauge-val-ul").textContent = ul.toFixed(0);
+    majJauge("anneau-ul", ul);
     dessiner(ulHistory, "ligne-ul", "aire-ul");
     const st = statsNonNulles(ulHistory);
     document.getElementById("peak-ul").textContent = "Peak " + st.peak;
     document.getElementById("avg-ul").textContent = "Avg " + st.avg;
   }
 
-  document.getElementById("val-ping").innerHTML = ping.toFixed(0) + '<span class="unite"> ms</span>';
-  document.getElementById("val-jitter").innerHTML = jitter.toFixed(1) + '<span class="unite"> ms</span>';
+  document.getElementById("val-ping").innerHTML = ping.toFixed(0) + '<span class="unite-stat"> ms</span>';
+  document.getElementById("val-jitter").innerHTML = jitter.toFixed(1) + '<span class="unite-stat"> ms</span>';
 
   const LABELS = { 0:"Initialisation…", 1:"Mesure du download…", 2:"Mesure du ping…", 3:"Mesure de l'upload…", 4:"Terminé", 5:"Arrêté" };
   document.getElementById("statut").textContent = LABELS[data.testState] ?? "";
@@ -299,8 +331,10 @@ function lancer(){
   ulHistory = [];
   dessiner(dlHistory, "ligne-dl", "aire-dl");
   dessiner(ulHistory, "ligne-ul", "aire-ul");
-  document.getElementById("val-dl").innerHTML = '0<span class="unite"> Mbps</span>';
-  document.getElementById("val-ul").innerHTML = '0<span class="unite"> Mbps</span>';
+  document.getElementById("jauge-val-dl").textContent = "0";
+  document.getElementById("jauge-val-ul").textContent = "0";
+  majJauge("anneau-dl", 0);
+  majJauge("anneau-ul", 0);
   document.getElementById("peak-dl").textContent = "Peak 0";
   document.getElementById("avg-dl").textContent = "Avg 0";
   document.getElementById("peak-ul").textContent = "Peak 0";

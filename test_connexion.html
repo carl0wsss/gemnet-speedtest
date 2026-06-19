@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>GemNet Speed Test</title>
 </head>
 <body>
@@ -13,12 +14,37 @@
     <script>
     const s = new Speedtest();
 
+    s.addTestPoints([
+        {
+            name: "Frankfurt (EU)",
+            server: "https://gemnet-speedtest.onrender.com/",
+            dlURL: "backend/garbage.php",
+            ulURL: "backend/empty.php",
+            pingURL: "backend/empty.php",
+            getIpURL: "backend/getIP.php"
+        },
+        {
+            name: "Singapore (Asia)",
+            server: "https://gemnet-speedtest-asia.onrender.com/",
+            dlURL: "backend/garbage.php",
+            ulURL: "backend/empty.php",
+            pingURL: "backend/empty.php",
+            getIpURL: "backend/getIP.php"
+        }
+    ]);
+
+    const log = (msg) => {
+        document.getElementById("resultats").textContent = msg;
+    };
+
     s.onupdate = (data) => {
-        document.getElementById("resultats").textContent =
+        log(
+            "Serveur  : " + (s.getSelectedServer() ? s.getSelectedServer().name : "...") + "\n" +
             "Download : " + data.dlStatus + " Mbps\n" +
             "Upload   : " + data.ulStatus + " Mbps\n" +
             "Ping     : " + data.pingStatus + " ms\n" +
-            "Jitter   : " + data.jitterStatus + " ms";
+            "Jitter   : " + data.jitterStatus + " ms"
+        );
     };
 
     s.onend = (aborted) => {
@@ -27,8 +53,16 @@
     };
 
     function lancer() {
-        document.getElementById("resultats").textContent = "Test en cours...";
-        s.start();
+        document.getElementById("resultats").textContent = "Sélection du meilleur serveur...";
+        s.selectServer((bestServer) => {
+            if (bestServer) {
+                document.getElementById("resultats").textContent =
+                    "Serveur choisi : " + bestServer.name + "\nTest en cours...";
+                s.start();
+            } else {
+                document.getElementById("resultats").textContent = "Aucun serveur disponible !";
+            }
+        });
     }
 
     function arreter() {

@@ -297,7 +297,7 @@
     </div>
 
     <p class="info-serveur" id="info-serveur"></p>
-    <p class="source-norme">Quality rating based on ITU-T G.114 (latency) and common real-time jitter and throughput thresholds (ITU-T G.1010).</p>
+    <p class="source-norme">Quality rating based on ITU-T G.114 (latency), common real-time jitter thresholds, and the FCC's 2024 broadband benchmark (100 Mbps download / 20 Mbps upload).</p>
 
   </div>
 </div>
@@ -355,10 +355,18 @@ function statsNonNulles(history){
   return { peak: peak.toFixed(0), avg: parseFloat(avg.toFixed(0)) };
 }
 
-// --- Quality scoring (ITU-T G.114 for latency, common thresholds for jitter and throughput) ---
-function noteDebit(mbps){
-  if(mbps >= 25) return 2;
-  if(mbps >= 10) return 1;
+// --- Quality scoring ---
+// Download / Upload : FCC 2024 broadband benchmark (100/20 Mbps) and former 2015 benchmark (25/3 Mbps)
+// Latency : ITU-T G.114
+// Jitter : common real-time threshold (VoIP/video)
+function noteDebitDownload(mbps){
+  if(mbps >= 100) return 2;
+  if(mbps >= 25) return 1;
+  return 0;
+}
+function noteDebitUpload(mbps){
+  if(mbps >= 20) return 2;
+  if(mbps >= 3) return 1;
   return 0;
 }
 function noteLatence(ms){
@@ -374,8 +382,8 @@ function noteJitter(ms){
 
 function afficherBadgeQualite(avgDl, avgUl, ping, jitter){
   const metriques = {
-    dl:     noteDebit(avgDl),
-    ul:     noteDebit(avgUl),
+    dl:     noteDebitDownload(avgDl),
+    ul:     noteDebitUpload(avgUl),
     ping:   noteLatence(ping),
     jitter: noteJitter(jitter)
   };

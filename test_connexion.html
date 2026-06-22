@@ -489,3 +489,16 @@ function lancer(){
   s.selectServer((best) => {
     if(!best){
       document.getElementById("statut").textContent = "No server available";
+      document.getElementById("btn-start").disabled = false;
+      return;
+    }
+    document.getElementById("noeud-" + best.id).classList.add("actif");
+    document.getElementById("info-serveur").textContent =
+      "Selected server: " + best.name + " — " + best.pingT.toFixed(0) + " ms";
+    document.getElementById("btn-start").textContent = "TEST RUNNING…";
+    s.start();
+  });
+}
+</script>
+</body>
+</html>

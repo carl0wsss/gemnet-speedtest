@@ -105,14 +105,37 @@
     font-weight:700;
     margin:0;
   }
-  .badge-detail{
-    font-size:11px;
-    margin:4px 0 0;
-    opacity:0.85;
-  }
   .badge-good{background:#E7F5ED;color:var(--vert-bon);}
   .badge-fair{background:#FBF1DE;color:var(--ambre-moyen);}
   .badge-poor{background:#FBE9E9;color:var(--rouge-gemnet);}
+
+  .detail-grille{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:12px;
+  }
+  .detail-item{
+    background:rgba(255,255,255,0.55);
+    border-radius:8px;
+    padding:8px 10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .detail-label{font-size:11px;color:var(--bleu-nuit);opacity:0.75;}
+  .detail-tag{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    padding:3px 8px;
+    border-radius:100px;
+    background:#E1E5F0;
+    color:var(--gris);
+  }
+  .tag-good{background:#1A8F4C;color:#FFFFFF;}
+  .tag-fair{background:#C9870C;color:#FFFFFF;}
+  .tag-poor{background:#D2151A;color:#FFFFFF;}
 
   .carte-mesure{
     background:var(--fond-carte);
@@ -201,7 +224,12 @@
     <div class="badge-qualite" id="badge-qualite">
       <p class="badge-titre">CONNECTION QUALITY</p>
       <p class="badge-valeur" id="badge-valeur">—</p>
-      <p class="badge-detail" id="badge-detail"></p>
+      <div class="detail-grille">
+        <div class="detail-item"><span class="detail-label">Download</span><span class="detail-tag" id="tag-dl">—</span></div>
+        <div class="detail-item"><span class="detail-label">Upload</span><span class="detail-tag" id="tag-ul">—</span></div>
+        <div class="detail-item"><span class="detail-label">Latency</span><span class="detail-tag" id="tag-ping">—</span></div>
+        <div class="detail-item"><span class="detail-label">Jitter</span><span class="detail-tag" id="tag-jitter">—</span></div>
+      </div>
     </div>
 
     <div class="carte-mesure">
@@ -345,28 +373,34 @@ function noteJitter(ms){
 }
 
 function afficherBadgeQualite(avgDl, avgUl, ping, jitter){
-  const metriques = [
-    { nom:"download",  note:noteDebit(avgDl) },
-    { nom:"upload",     note:noteDebit(avgUl) },
-    { nom:"latency",    note:noteLatence(ping) },
-    { nom:"jitter",     note:noteJitter(jitter) }
-  ];
-  const noteMin = Math.min(...metriques.map(m => m.note));
-  const faibles = metriques.filter(m => m.note === noteMin).map(m => m.nom);
+  const metriques = {
+    dl:     noteDebit(avgDl),
+    ul:     noteDebit(avgUl),
+    ping:   noteLatence(ping),
+    jitter: noteJitter(jitter)
+  };
 
   const LIBELLES = { 2:"GOOD", 1:"FAIR", 0:"POOR" };
-  const CLASSES  = { 2:"badge-good", 1:"badge-fair", 0:"badge-poor" };
+  const CLASSES_TAG = { 2:"tag-good", 1:"tag-fair", 0:"tag-poor" };
+  const CLASSES_BADGE = { 2:"badge-good", 1:"badge-fair", 0:"badge-poor" };
+
+  ["dl","ul","ping","jitter"].forEach(cle => {
+    const tag = document.getElementById("tag-" + cle);
+    tag.textContent = LIBELLES[metriques[cle]];
+    tag.className = "detail-tag " + CLASSES_TAG[metriques[cle]];
+  });
+
+  const somme = metriques.dl + metriques.ul + metriques.ping + metriques.jitter;
+  const moyenne = somme / 4;
+  let noteGlobale;
+  if (moyenne >= 1.5) noteGlobale = 2;
+  else if (moyenne >= 0.75) noteGlobale = 1;
+  else noteGlobale = 0;
 
   const badge = document.getElementById("badge-qualite");
   badge.style.display = "block";
-  badge.className = "badge-qualite " + CLASSES[noteMin];
-  document.getElementById("badge-valeur").textContent = LIBELLES[noteMin];
-
-  if(noteMin === 2){
-    document.getElementById("badge-detail").textContent = "All metrics meet recommended thresholds.";
-  } else {
-    document.getElementById("badge-detail").textContent = "Limited by: " + faibles.join(", ");
-  }
+  badge.className = "badge-qualite " + CLASSES_BADGE[noteGlobale];
+  document.getElementById("badge-valeur").textContent = LIBELLES[noteGlobale];
 }
 
 function reinitialiserAffichage(){
@@ -387,6 +421,11 @@ function reinitialiserAffichage(){
   document.querySelectorAll(".noeud").forEach(n => n.classList.remove("actif"));
   document.getElementById("info-serveur").textContent = "";
   document.getElementById("badge-qualite").style.display = "none";
+  ["dl","ul","ping","jitter"].forEach(cle => {
+    const tag = document.getElementById("tag-" + cle);
+    tag.textContent = "—";
+    tag.className = "detail-tag";
+  });
   dernierPing = 0;
   dernierJitter = 0;
 }
@@ -450,16 +489,3 @@ function lancer(){
   s.selectServer((best) => {
     if(!best){
       document.getElementById("statut").textContent = "No server available";
-      document.getElementById("btn-start").disabled = false;
-      return;
-    }
-    document.getElementById("noeud-" + best.id).classList.add("actif");
-    document.getElementById("info-serveur").textContent =
-      "Selected server: " + best.name + " — " + best.pingT.toFixed(0) + " ms";
-    document.getElementById("btn-start").textContent = "TEST RUNNING…";
-    s.start();
-  });
-}
-</script>
-</body>
-</html>
